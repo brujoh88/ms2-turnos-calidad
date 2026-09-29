@@ -138,6 +138,40 @@ class ReporteTurnosTest {
     }
 
     @Test
+    @DisplayName("Seguridad: un nombre de hospital con ${...} se muestra tal cual, sin evaluarse")
+    void nombreDeHospitalNoSeInterpreta() {
+        // Arrange
+        String hospitalMalicioso = "Hospital ${sys:user.name} ${script:javascript:1+1}";
+
+        // Act
+        String salida = reporte.generar(List.of(), "TODOS", "TXT", hospitalMalicioso);
+
+        // Assert
+        assertEquals(hospitalMalicioso + " - Todos los turnos\n", salida);
+    }
+
+    @Test
+    @DisplayName("Un tipo de reporte desconocido se trata como TODOS")
+    void tipoDesconocidoIncluyeTodosLosTurnos() {
+        // Act
+        String salida = reporte.generar(TURNOS, "INEXISTENTE", "CSV", HOSPITAL);
+
+        // Assert
+        assertEquals(reporte.generar(TURNOS, "TODOS", "CSV", HOSPITAL), salida);
+    }
+
+    @Test
+    @DisplayName("Un cuarto campo distinto de URGENTE no marca el turno como urgente")
+    void cuartoCampoDistintoDeUrgente() {
+        // Act
+        String salida =
+                reporte.generar(List.of("Juan Sosa-50-OSDE-CONTROL"), "URGENTES", "CSV", HOSPITAL);
+
+        // Assert
+        assertEquals("paciente;edad;obra_social\n", salida);
+    }
+
+    @Test
     @DisplayName("Caracterizacion: una lista nula produce un reporte vacio")
     void listaNulaProduceReporteVacio() {
         // Act
