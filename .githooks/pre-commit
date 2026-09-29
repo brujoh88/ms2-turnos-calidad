@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Pre-commit hook: Formatter -> Linter -> Pruebas unitarias.
+# Si cualquier paso falla, el commit se aborta y los cambios quedan en el area de trabajo.
+set -uo pipefail
+RAIZ="$(git rev-parse --show-toplevel)"
+cd "$RAIZ"
+
+mapfile -t JAVA < <(git diff --cached --name-only --diff-filter=ACMR -- '*.java')
+
+paso() { printf '\n[pre-commit] %s\n' "$1"; }
+abortar() {
+    printf '\n[pre-commit] ✘ COMMIT ABORTADO: fallo el paso "%s".\n' "$1"
+    printf '[pre-commit]   %s\n' "$2"
+    printf '[pre-commit]   Los cambios siguen en el area de trabajo; nada se registro en el historial.\n'
+    exit 1
+}
+
+echo "[pre-commit] Archivos Java en el commit: ${#JAVA[@]}"
+
+paso "1/3 Formatter (google-java-format, estilo AOSP) sobre los archivos del commit"
+if [ ${#JAVA[@]} -gt 0 ]; then
+    if ! scripts/formatear.sh --check "${JAVA[@]}"; then
+        abortar "Formatter" "Los archivos listados arriba no respetan el formato. Corre scripts/formatear.sh y volve a agregarlos."
+    fi
+fi
+echo "[pre-commit] ✔ Formato correcto"
+
+paso "2/3 Linter (Checkstyle, config/checkstyle.xml) sobre los archivos del commit"
+if [ ${#JAVA[@]} -gt 0 ]; then
+    if ! scripts/lint.sh "${JAVA[@]}"; then
+        abortar "Linter" "Hay violaciones a las reglas del proyecto (detalle arriba)."
+    fi
+fi
+echo "[pre-commit] ✔ Sin violaciones de Checkstyle"
+
+paso "3/3 Suite completa de pruebas unitarias (JUnit 5 + cobertura JaCoCo)"
+if ! scripts/build.sh; then
+    abortar "Pruebas unitarias" "La compilacion o algun test fallo: un solo test en rojo veta el commit."
+fi
+echo
+echo "[pre-commit] ✔ Los tres controles en verde: se registra el commit."

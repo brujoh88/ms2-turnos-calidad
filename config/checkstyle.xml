@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  Reglas del proyecto (criterio 5 de la DoD: gobernanza de estilo).
+  El formato visual lo resuelve google-java-format; aca van las reglas de calidad.
+-->
+<module name="Checker">
+  <property name="severity" value="error"/>
+  <module name="TreeWalker">
+    <!-- Imports -->
+    <module name="UnusedImports"/>
+    <module name="RedundantImport"/>
+    <module name="AvoidStarImport"/>
+    <!-- Bloques y control de flujo -->
+    <module name="NeedBraces"/>
+    <module name="EmptyBlock"/>
+    <module name="EmptyCatchBlock"/>
+    <!-- Comparaciones seguras -->
+    <module name="EqualsAvoidNull"/>
+    <module name="StringLiteralEquality"/>
+    <!-- Tamano y complejidad -->
+    <module name="CyclomaticComplexity">
+      <property name="max" value="10"/>
+    </module>
+    <module name="MethodLength">
+      <property name="max" value="40"/>
+    </module>
+    <module name="ParameterNumber">
+      <property name="max" value="4"/>
+    </module>
+    <module name="NestedIfDepth">
+      <property name="max" value="2"/>
+    </module>
+    <!-- Nombres -->
+    <module name="LocalVariableName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]{1,}$"/>
+    </module>
+  </module>
+</module>
